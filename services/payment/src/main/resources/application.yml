@@ -1,0 +1,13 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: payment
+  datasource:
+    url: jdbc:postgresql://localhost:5432/umrah?currentSchema=payment
+    username: umrah
+    password: umrah
+  jpa:
+    hibernate:
+      ddl-auto: update

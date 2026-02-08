@@ -1,0 +1,19 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: auth
+  datasource:
+    url: jdbc:postgresql://localhost:5432/umrah?currentSchema=auth
+    username: umrah
+    password: umrah
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:change-me-please}
+    issuer: almuhammad
+    expiresMinutes: 120

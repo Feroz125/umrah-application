@@ -1,0 +1,13 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: booking
+  datasource:
+    url: jdbc:postgresql://localhost:5432/umrah?currentSchema=booking
+    username: umrah
+    password: umrah
+  jpa:
+    hibernate:
+      ddl-auto: update

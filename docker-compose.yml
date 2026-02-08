@@ -1,0 +1,57 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: umrah
+      POSTGRES_PASSWORD: umrah
+      POSTGRES_DB: umrah
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  gateway:
+    build: ./services/gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth
+      - catalog
+      - booking
+      - payment
+
+  auth:
+    build: ./services/auth
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+
+  catalog:
+    build: ./services/catalog
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres
+
+  booking:
+    build: ./services/booking
+    ports:
+      - "8083:8083"
+    depends_on:
+      - postgres
+
+  payment:
+    build: ./services/payment
+    ports:
+      - "8084:8084"
+    depends_on:
+      - postgres
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - gateway

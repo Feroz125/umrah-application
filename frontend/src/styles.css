@@ -1,0 +1,226 @@
+:root {
+  --bg: #0f1115;
+  --accent: #d1a954;
+  --accent-2: #0b6d66;
+  --text: #f4f1ea;
+  --muted: #a5a3a0;
+  --panel: #141823;
+  --panel-2: #10131a;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Merriweather", "Times New Roman", serif;
+  background: radial-gradient(circle at top, #1b1f2a, #0f1115 60%);
+  color: var(--text);
+}
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.hero {
+  display: grid;
+  gap: 32px;
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: center;
+  margin-bottom: 48px;
+}
+
+.brand {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 12px;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+h1 {
+  font-size: 44px;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+
+.sub {
+  color: var(--muted);
+  font-size: 18px;
+  margin-bottom: 24px;
+}
+
+.cta {
+  border: none;
+  background: var(--accent);
+  color: #111;
+  padding: 12px 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.ghost {
+  border: 1px solid #2a2f3a;
+  background: transparent;
+  color: var(--text);
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.hero-card {
+  background: linear-gradient(160deg, #1e2330, #12151d);
+  padding: 24px;
+  border: 1px solid #2a2f3a;
+}
+
+.label {
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.booking {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #2a2f3a;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid #222836;
+  padding: 20px;
+  cursor: pointer;
+  transition: transform 0.2s ease, border 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-2);
+}
+
+.card.active {
+  border-color: var(--accent);
+}
+
+.price {
+  color: var(--accent);
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+.auth {
+  margin-bottom: 48px;
+  padding: 24px;
+  border: 1px solid #1f2532;
+  background: var(--panel-2);
+}
+
+.login {
+  display: grid;
+  gap: 12px;
+  max-width: 320px;
+}
+
+.login input {
+  padding: 10px 12px;
+  border: 1px solid #2a2f3a;
+  background: #0f1115;
+  color: var(--text);
+}
+
+.hint {
+  font-size: 12px;
+}
+
+.session {
+  display: grid;
+  gap: 8px;
+}
+
+.admin {
+  margin-bottom: 48px;
+  padding: 24px;
+  background: var(--panel);
+  border: 1px solid #1f2532;
+}
+
+.admin-header {
+  margin-bottom: 20px;
+}
+
+.admin-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.panel {
+  background: #0f1115;
+  border: 1px solid #1f2532;
+  padding: 16px;
+}
+
+.stack {
+  display: grid;
+  gap: 10px;
+}
+
+.stack input {
+  padding: 10px 12px;
+  border: 1px solid #2a2f3a;
+  background: #0f1115;
+  color: var(--text);
+}
+
+.list {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #1f2532;
+}
+
+.badge {
+  border: 1px solid #2a2f3a;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  background: var(--panel-2);
+  padding: 24px;
+  border: 1px solid #1f2532;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+  h1 {
+    font-size: 36px;
+  }
+}

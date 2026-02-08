@@ -1,0 +1,13 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: catalog
+  datasource:
+    url: jdbc:postgresql://localhost:5432/umrah?currentSchema=catalog
+    username: umrah
+    password: umrah
+  jpa:
+    hibernate:
+      ddl-auto: update
