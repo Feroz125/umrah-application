@@ -29,13 +29,17 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
     String path = exchange.getRequest().getURI().getPath();
+    String requestTenant = normalizeTenant(exchange.getRequest().getHeaders().getFirst("X-Tenant-ID"));
 
     if (exchange.getRequest().getMethod().matches("OPTIONS")) {
       return chain.filter(exchange);
     }
 
     if (isPublic(path)) {
-      return chain.filter(exchange);
+      ServerHttpRequest publicMutated = exchange.getRequest().mutate()
+        .header("X-Tenant-ID", requestTenant)
+        .build();
+      return chain.filter(exchange.mutate().request(publicMutated).build());
     }
 
     String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
@@ -54,6 +58,12 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
       String role = String.valueOf(claims.get("role"));
       String user = String.valueOf(claims.get("sub"));
+      String tokenTenant = normalizeTenant(String.valueOf(claims.getOrDefault("tenant", requestTenant)));
+
+      if (!requestTenant.equals(tokenTenant)) {
+        exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+        return exchange.getResponse().setComplete();
+      }
 
       if (path.startsWith("/api/admin") && !"ADMIN".equalsIgnoreCase(role)) {
         exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
@@ -63,6 +73,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
       ServerHttpRequest mutated = exchange.getRequest().mutate()
         .header("X-User", user)
         .header("X-Role", role)
+        .header("X-Tenant-ID", tokenTenant)
         .build();
 
       return chain.filter(exchange.mutate().request(mutated).build());
@@ -85,5 +96,16 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
   @Override
   public int getOrder() {
     return -1;
+  }
+
+  private String normalizeTenant(String tenantValue) {
+    if (!StringUtils.hasText(tenantValue)) {
+      return "public";
+    }
+    String normalized = tenantValue.trim().toLowerCase();
+    if (!normalized.matches("^[a-z0-9][a-z0-9_-]{1,39}$")) {
+      return "public";
+    }
+    return normalized;
   }
 }

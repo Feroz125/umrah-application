@@ -15,6 +15,13 @@ services:
     build: ./services/gateway
     ports:
       - "8080:8080"
+    environment:
+      AUTH_SERVICE_URL: http://auth:8081
+      CATALOG_SERVICE_URL: http://catalog:8082
+      BOOKING_SERVICE_URL: http://booking:8083
+      PAYMENT_SERVICE_URL: http://payment:8084
+      CORS_ALLOWED_ORIGINS: http://localhost:5173
+      JWT_SECRET: ${JWT_SECRET:-change-me-please-change-me-please-123456}
     depends_on:
       - auth
       - catalog
@@ -25,6 +32,14 @@ services:
     build: ./services/auth
     ports:
       - "8081:8081"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: umrah
+      DB_USER: umrah
+      DB_PASSWORD: umrah
+      JWT_SECRET: ${JWT_SECRET:-change-me-please-change-me-please-123456}
+      GOOGLE_CLIENT_ID: 619516920511-73vcvhuff2f97k70vf3g3fcta2f4a32b.apps.googleusercontent.com
     depends_on:
       - postgres
 
@@ -32,6 +47,12 @@ services:
     build: ./services/catalog
     ports:
       - "8082:8082"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: umrah
+      DB_USER: umrah
+      DB_PASSWORD: umrah
     depends_on:
       - postgres
 
@@ -39,6 +60,12 @@ services:
     build: ./services/booking
     ports:
       - "8083:8083"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: umrah
+      DB_USER: umrah
+      DB_PASSWORD: umrah
     depends_on:
       - postgres
 
@@ -46,6 +73,12 @@ services:
     build: ./services/payment
     ports:
       - "8084:8084"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: umrah
+      DB_USER: umrah
+      DB_PASSWORD: umrah
     depends_on:
       - postgres
 
@@ -53,5 +86,8 @@ services:
     build: ./frontend
     ports:
       - "5173:5173"
+    environment:
+      VITE_PROXY_TARGET: http://gateway:8080
+      VITE_GOOGLE_CLIENT_ID: 619516920511-73vcvhuff2f97k70vf3g3fcta2f4a32b.apps.googleusercontent.com
     depends_on:
       - gateway

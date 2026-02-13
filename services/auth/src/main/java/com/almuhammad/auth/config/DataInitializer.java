@@ -11,10 +11,17 @@ public class DataInitializer {
   @Bean
   public CommandLineRunner seedUsers(UserRepository users, AuthService authService) {
     return args -> {
-      if (users.findByEmail("admin@almuhammad.com").isEmpty()) {
+      users.findAll().forEach(user -> {
+        if (user.getTenantId() == null || user.getTenantId().isBlank()) {
+          user.setTenantId("public");
+          users.save(user);
+        }
+      });
+
+      if (users.findByEmailAndTenantId("admin@almuhammad.com", "public").isEmpty()) {
         authService.register("admin@almuhammad.com", "admin123", "ADMIN");
       }
-      if (users.findByEmail("user@almuhammad.com").isEmpty()) {
+      if (users.findByEmailAndTenantId("user@almuhammad.com", "public").isEmpty()) {
         authService.register("user@almuhammad.com", "user123", "USER");
       }
     };

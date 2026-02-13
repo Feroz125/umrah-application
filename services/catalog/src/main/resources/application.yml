@@ -5,9 +5,9 @@ spring:
   application:
     name: catalog
   datasource:
-    url: jdbc:postgresql://localhost:5432/umrah?currentSchema=catalog
-    username: umrah
-    password: umrah
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:umrah}?currentSchema=catalog
+    username: ${DB_USER:umrah}
+    password: ${DB_PASSWORD:umrah}
   jpa:
     hibernate:
       ddl-auto: update

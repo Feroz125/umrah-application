@@ -26,7 +26,7 @@ public class JwtService {
     this.expiresMinutes = expiresMinutes;
   }
 
-  public String generate(String email, String role) {
+  public String generate(String email, String role, String tenantId) {
     Instant now = Instant.now();
     Instant exp = now.plusSeconds(expiresMinutes * 60);
 
@@ -35,7 +35,7 @@ public class JwtService {
       .issuer(issuer)
       .issuedAt(Date.from(now))
       .expiration(Date.from(exp))
-      .claims(Map.of("role", role))
+      .claims(Map.of("role", role, "tenant", tenantId))
       .signWith(Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)))
       .compact();
   }

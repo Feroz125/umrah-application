@@ -21,6 +21,9 @@ public class UmrahPackage {
   @Column(nullable = false)
   private Integer price;
 
+  @Column
+  private String tenantId;
+
   private String description;
 
   public Long getId() { return id; }
@@ -33,6 +36,8 @@ public class UmrahPackage {
   public void setNights(Integer nights) { this.nights = nights; }
   public Integer getPrice() { return price; }
   public void setPrice(Integer price) { this.price = price; }
+  public String getTenantId() { return tenantId; }
+  public void setTenantId(String tenantId) { this.tenantId = tenantId; }
   public String getDescription() { return description; }
   public void setDescription(String description) { this.description = description; }
 }

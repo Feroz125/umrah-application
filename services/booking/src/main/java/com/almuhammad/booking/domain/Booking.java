@@ -27,6 +27,9 @@ public class Booking {
   @Column(nullable = false)
   private String userEmail;
 
+  @Column
+  private String tenantId;
+
   @Column(nullable = false)
   private Instant createdAt;
 
@@ -42,6 +45,8 @@ public class Booking {
   public void setStatus(String status) { this.status = status; }
   public String getUserEmail() { return userEmail; }
   public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
+  public String getTenantId() { return tenantId; }
+  public void setTenantId(String tenantId) { this.tenantId = tenantId; }
   public Instant getCreatedAt() { return createdAt; }
   public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

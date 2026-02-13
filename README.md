@@ -41,6 +41,35 @@ A microservices-based Umrah service portal with an ecommerce-style service flow.
 - `/api/admin/booking/**`
 - `/api/admin/payment/**`
 
+## Multi-Tenant Behavior
+- Every request can include `X-Tenant-ID` (defaults to `public` if missing).
+- JWT tokens now carry a tenant claim; gateway enforces tenant match for protected routes.
+- Data is scoped by tenant in `auth`, `booking`, `payment`, and tenant-aware views in `catalog`.
+- New profile endpoint:
+  - `GET /api/auth/me` (requires bearer token)
+
+## Registration Flow (Email + Mobile OTP)
+1. Request OTP: `POST /api/auth/otp/request` with `mobileNumber` (E.164 format, e.g. `+919876543210`)
+2. Verify OTP: `POST /api/auth/otp/verify` with `mobileNumber` and `otp`
+3. Register: `POST /api/auth/register` with:
+   - `firstName`
+   - `lastName`
+   - `email`
+   - `mobileNumber`
+   - `mobileVerificationToken` (from OTP verify response)
+   - `password`
+
+Note: in local dev, OTP is returned in response as `demoOtp` by default.
+
 ## Environment
-- `JWT_SECRET`: shared JWT secret (defaults to `change-me-please`)
+- `JWT_SECRET`: shared JWT secret (use 32+ chars; compose now sets a valid dev default)
 - Postgres: `umrah / umrah` on `localhost:5432`
+
+## Google Sign-In Setup
+1. Create a Google OAuth Web Client in Google Cloud Console.
+2. Add your frontend origin (for local Docker dev: `http://localhost:5173`).
+3. Set environment variable `GOOGLE_CLIENT_ID` before starting compose.
+   - PowerShell example: `$env:GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"`
+4. Restart services: `docker compose up -d --build`
+
+The frontend reads `VITE_GOOGLE_CLIENT_ID` from compose, and auth service validates Google ID tokens using `GOOGLE_CLIENT_ID`.

@@ -11,13 +11,21 @@ public class DataInitializer {
   @Bean
   public CommandLineRunner seedPackages(UmrahPackageRepository repo) {
     return args -> {
-      if (repo.count() == 0) {
+      repo.findAll().forEach(p -> {
+        if (p.getTenantId() == null || p.getTenantId().isBlank()) {
+          p.setTenantId("public");
+          repo.save(p);
+        }
+      });
+
+      if (repo.countByTenantId("public") == 0) {
         UmrahPackage basic = new UmrahPackage();
         basic.setCode("umrah-basic");
         basic.setName("Umrah Basic");
         basic.setNights(7);
         basic.setPrice(1250);
         basic.setDescription("Essential package with guided support.");
+        basic.setTenantId("public");
         repo.save(basic);
 
         UmrahPackage plus = new UmrahPackage();
@@ -26,6 +34,7 @@ public class DataInitializer {
         plus.setNights(10);
         plus.setPrice(1850);
         plus.setDescription("Extended stay with premium hotels.");
+        plus.setTenantId("public");
         repo.save(plus);
 
         UmrahPackage premium = new UmrahPackage();
@@ -34,6 +43,7 @@ public class DataInitializer {
         premium.setNights(14);
         premium.setPrice(2450);
         premium.setDescription("VIP experience with concierge service.");
+        premium.setTenantId("public");
         repo.save(premium);
       }
     };

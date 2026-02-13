@@ -5,6 +5,7 @@ import com.almuhammad.catalog.repo.UmrahPackageRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -17,7 +18,17 @@ public class CatalogController {
   }
 
   @GetMapping("/packages")
-  public ResponseEntity<List<UmrahPackage>> listPackages() {
-    return ResponseEntity.ok(repo.findAll());
+  public ResponseEntity<List<UmrahPackage>> listPackages(
+      @RequestHeader(value = "X-Tenant-ID", required = false) String tenant
+  ) {
+    String tenantId = normalizeTenant(tenant);
+    return ResponseEntity.ok(repo.findByTenantIdIn(Arrays.asList(tenantId, "public")));
+  }
+
+  private String normalizeTenant(String tenant) {
+    if (tenant == null || tenant.isBlank()) {
+      return "public";
+    }
+    return tenant.trim().toLowerCase();
   }
 }

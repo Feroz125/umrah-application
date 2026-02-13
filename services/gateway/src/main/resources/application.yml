@@ -9,48 +9,48 @@ spring:
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins: "http://localhost:5173"
+            allowedOrigins: "${CORS_ALLOWED_ORIGINS:http://localhost:5173}"
             allowedMethods: "*"
             allowedHeaders: "*"
       routes:
         - id: auth
-          uri: http://localhost:8081
+          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
           predicates:
             - Path=/api/auth/**
           filters:
-            - StripPrefix=2
+            - StripPrefix=1
         - id: catalog
-          uri: http://localhost:8082
+          uri: ${CATALOG_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/catalog/**
           filters:
-            - StripPrefix=2
+            - StripPrefix=1
         - id: booking
-          uri: http://localhost:8083
+          uri: ${BOOKING_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/booking/**
           filters:
-            - StripPrefix=2
+            - StripPrefix=1
         - id: payment
-          uri: http://localhost:8084
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:8084}
           predicates:
             - Path=/api/payment/**
           filters:
-            - StripPrefix=2
+            - StripPrefix=1
         - id: admin-catalog
-          uri: http://localhost:8082
+          uri: ${CATALOG_SERVICE_URL:http://localhost:8082}
           predicates:
             - Path=/api/admin/catalog/**
           filters:
             - StripPrefix=1
         - id: admin-booking
-          uri: http://localhost:8083
+          uri: ${BOOKING_SERVICE_URL:http://localhost:8083}
           predicates:
             - Path=/api/admin/booking/**
           filters:
             - StripPrefix=1
         - id: admin-payment
-          uri: http://localhost:8084
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:8084}
           predicates:
             - Path=/api/admin/payment/**
           filters:
@@ -58,4 +58,4 @@ spring:
 
 security:
   jwt:
-    secret: ${JWT_SECRET:change-me-please}
+    secret: ${JWT_SECRET:change-me-please-change-me-please-123456}
