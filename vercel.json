@@ -4,10 +4,7 @@
   "buildCommand": "npm run build --prefix frontend",
   "outputDirectory": "frontend/dist",
   "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api/proxy/:path*"
-    },
+    { "source": "/api/:path*", "destination": "/api/proxy/:path*" },
     { "source": "/(.*)", "destination": "/" }
   ]
 }

@@ -1,3 +1,10 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/proxy/:path*"
+    },
+    { "source": "/(.*)", "destination": "/" }
+  ]
 }
