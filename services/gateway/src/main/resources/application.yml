@@ -9,9 +9,28 @@ spring:
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOrigins: "${CORS_ALLOWED_ORIGINS:http://localhost:5173}"
-            allowedMethods: "*"
-            allowedHeaders: "*"
+            # Comma-separated list is supported via CORS_ALLOWED_ORIGINS env.
+            # Example:
+            # CORS_ALLOWED_ORIGINS=https://al-muhammadtravels.com,https://www.al-muhammadtravels.com,https://umrah-application-pqz2xap6l-feroz125s-projects.vercel.app,http://localhost:5173
+            allowedOriginPatterns: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - Authorization
+              - Content-Type
+              - X-Tenant-ID
+              - X-Requested-With
+              - Accept
+              - Origin
+            exposedHeaders:
+              - Authorization
+            allowCredentials: true
+            maxAge: 3600
       routes:
         - id: auth
           uri: ${AUTH_SERVICE_URL:http://localhost:8081}
