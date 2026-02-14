@@ -39,7 +39,7 @@ services:
       DB_USER: umrah
       DB_PASSWORD: umrah
       JWT_SECRET: ${JWT_SECRET:-change-me-please-change-me-please-123456}
-      GOOGLE_CLIENT_ID: 619516920511-73vcvhuff2f97k70vf3g3fcta2f4a32b.apps.googleusercontent.com
+      GOOGLE_CLIENT_ID: 619516920511-4k3a6g5973a04p57d76rhhp6h23eutkj.apps.googleusercontent.com
     depends_on:
       - postgres
 
@@ -90,7 +90,7 @@ services:
       - "5173:5173"
     environment:
       VITE_PROXY_TARGET: http://gateway:8080
-      VITE_GOOGLE_CLIENT_ID: 619516920511-73vcvhuff2f97k70vf3g3fcta2f4a32b.apps.googleusercontent.com
+      VITE_GOOGLE_CLIENT_ID: 619516920511-4k3a6g5973a04p57d76rhhp6h23eutkj.apps.googleusercontent.com
       VITE_RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
     depends_on:
       - gateway
