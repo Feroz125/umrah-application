@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const API = import.meta.env.VITE_API_BASE_URL || "/api";
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+const API = (import.meta.env.VITE_API_BASE_URL || "/api").replace(/\/+$/, "");
+const GOOGLE_CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID || "").trim();
 const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
 const HERO_COVER_IMAGE =
   "https://res.cloudinary.com/djzjta6h3/image/upload/v1771031352/web-cover_r4n0eq.jpg";
@@ -185,8 +185,14 @@ export default function App() {
               },
               body: JSON.stringify({ idToken: response.credential })
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Google sign-in failed");
+            const raw = await res.text();
+            let data = {};
+            try {
+              data = raw ? JSON.parse(raw) : {};
+            } catch {
+              data = { error: raw || "Google sign-in failed" };
+            }
+            if (!res.ok) throw new Error(data.error || `Google sign-in failed (${res.status})`);
             setSession(data);
             setAuthError("");
           } catch (err) {
@@ -1890,4 +1896,5 @@ export default function App() {
     </div>
   );
 }
+
 

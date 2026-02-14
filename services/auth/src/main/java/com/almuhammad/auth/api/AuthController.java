@@ -40,7 +40,7 @@ public class AuthController {
       String mobileVerificationToken,
       String password
   ) {}
-  public record GoogleLoginRequest(String idToken) {}
+  public record GoogleLoginRequest(String idToken, String credential) {}
   public record OtpRequest(String mobileNumber) {}
   public record OtpVerifyRequest(String mobileNumber, String otp) {}
 
@@ -145,7 +145,11 @@ public class AuthController {
   ) {
     try {
       String tenantId = normalizeTenant(tenantHeader);
-      String email = googleTokenVerifier.verifyAndExtractEmail(payload.idToken());
+      String idToken = payload.idToken();
+      if ((idToken == null || idToken.isBlank()) && payload.credential() != null) {
+        idToken = payload.credential();
+      }
+      String email = googleTokenVerifier.verifyAndExtractEmail(idToken);
       User user = authService.registerOrGetGoogleUser(tenantId, email);
       String token = jwtService.generate(user.getEmail(), user.getRole(), user.getTenantId());
       return ResponseEntity.ok(Map.of(
