@@ -73,3 +73,16 @@ Note: in local dev, OTP is returned in response as `demoOtp` by default.
 4. Restart services: `docker compose up -d --build`
 
 The frontend reads `VITE_GOOGLE_CLIENT_ID` from compose, and auth service validates Google ID tokens using `GOOGLE_CLIENT_ID`.
+
+## Razorpay Setup (UPI/Card)
+1. Create/Use a Razorpay key pair.
+2. Set environment variables before starting compose:
+   - `RAZORPAY_KEY_ID`
+   - `RAZORPAY_KEY_SECRET`
+3. Start services:
+   - `docker compose up -d --build payment frontend`
+
+Installment payment buttons now support:
+- `UPI`
+- `Credit Card`
+- `Debit Card`

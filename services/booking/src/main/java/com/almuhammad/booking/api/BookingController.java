@@ -51,7 +51,7 @@ public class BookingController {
     return ResponseEntity.ok(repo.findByIdAndTenantId(id, normalizeTenant(tenant)).orElseThrow());
   }
 
-  @GetMapping("/booking/my")
+  @GetMapping({"/booking/my", "/booking/me", "/booking/user-bookings"})
   public ResponseEntity<?> myBookings(
       @RequestHeader(value = "X-User", required = false) String user,
       @RequestHeader(value = "X-Tenant-ID", required = false) String tenant

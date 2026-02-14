@@ -46,15 +46,13 @@ body {
 
 .topbar {
   display: grid;
-  grid-template-columns: auto 1fr auto auto auto;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 18px;
   padding: 14px 18px;
-  background:
-    linear-gradient(120deg, rgba(198, 169, 126, 0.26), rgba(246, 237, 220, 0.95) 35%),
-    rgba(245, 235, 215, 0.96);
-  border: 1px solid #e3d3b9;
-  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #ededed;
+  border-radius: 12px;
   box-shadow: var(--shadow);
   position: relative;
   z-index: 200;
@@ -62,22 +60,25 @@ body {
 }
 
 .topbar::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  pointer-events: none;
-  background-image:
-    linear-gradient(45deg, rgba(160, 124, 71, 0.07) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(160, 124, 71, 0.07) 25%, transparent 25%);
-  background-size: 28px 28px;
-  opacity: 0.5;
+  display: none;
 }
 
 .logo {
   display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.brand-link {
+  display: flex;
   align-items: center;
   gap: 10px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
 }
 
 .brand-logo {
@@ -105,23 +106,28 @@ body {
 
 .brand {
   margin: 0;
-  font-family: "Fraunces", "Times New Roman", serif;
-  font-size: 1.18rem;
-  font-weight: 700;
-  color: #0f4a34;
+  font-family: "Manrope", "Segoe UI", Arial, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #121212;
 }
 
 .tagline {
   margin: 0;
-  font-size: 0.82rem;
-  color: #7a6542;
+  font-size: 0.8rem;
+  color: #6c6c6c;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .nav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-wrap: nowrap;
+  gap: 10px;
   justify-content: center;
+  overflow: visible;
 }
 
 .header-search {
@@ -190,15 +196,58 @@ body {
 
 .nav-link {
   background: transparent;
-  color: #3f3439;
+  color: #1f1f1f;
   border-color: transparent;
   border-radius: 8px;
+  padding: 10px 12px;
 }
 
 .nav-link:hover,
 .nav-link.active {
-  background: #fff4f8;
-  color: var(--brand-strong);
+  background: #f4f4f4;
+  color: #121212;
+}
+
+.menu-wrap {
+  position: relative;
+  justify-self: start;
+}
+
+.menu-trigger {
+  border: 1px solid #dadada;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: #fff;
+  color: #232323;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.menu-trigger:hover {
+  background: #f7f7f7;
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 52px;
+  left: 0;
+  transform: none;
+  min-width: 220px;
+  display: grid;
+  gap: 4px;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.24);
+  padding: 8px;
+  z-index: 1300;
+}
+
+.menu-dropdown .nav-link {
+  width: 100%;
+  text-align: left;
 }
 
 .account-pill {
@@ -216,9 +265,9 @@ body {
 .profile-trigger {
   width: 42px;
   height: 42px;
-  border: 1px solid var(--brand);
+  border: 1px solid #d8d8d8;
   border-radius: 50%;
-  background: linear-gradient(180deg, var(--brand) 0%, var(--brand-strong) 100%);
+  background: #111;
   color: #fff;
   font-weight: 700;
   cursor: pointer;
@@ -230,11 +279,11 @@ body {
   top: 48px;
   min-width: 180px;
   border-radius: 12px;
-  border: 1px solid var(--line);
+  border: 1px solid #e8e8e8;
   background: #fff;
   box-shadow: 0 16px 30px rgba(0, 0, 0, 0.14);
   overflow: hidden;
-  z-index: 1000;
+  z-index: 1200;
 }
 
 .profile-dropdown button {
@@ -242,20 +291,20 @@ body {
   text-align: left;
   border: 0;
   background: #fff;
-  color: #3b222c;
+  color: #252525;
   padding: 11px 12px;
   cursor: pointer;
 }
 
 .profile-dropdown button:hover {
-  background: #fff2f7;
+  background: #f6f6f6;
 }
 
 .cart-chip {
-  border: 1px solid var(--line);
+  border: 1px solid #e3e3e3;
   border-radius: 999px;
   background: #fff;
-  color: #38242d;
+  color: #1f1f1f;
   font-weight: 700;
   padding: 10px 14px;
   display: inline-flex;
@@ -447,8 +496,8 @@ body {
 
 .topbar .ghost {
   background: #fff;
-  color: #5a3644;
-  border-color: #e8c8d6;
+  color: #2e2e2e;
+  border-color: #dadada;
 }
 
 .ghost.danger {
@@ -688,6 +737,10 @@ select:focus {
   color: #6a4554;
 }
 
+.booking .cta.light {
+  margin-top: 10px;
+}
+
 .installments {
   margin-top: 14px;
   padding-top: 14px;
@@ -732,6 +785,13 @@ select:focus {
 .installment-item .cta.light {
   width: auto;
   min-width: 110px;
+}
+
+.payment-methods {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .installment-item .cta.light:disabled {
@@ -824,16 +884,12 @@ select:focus {
     justify-items: stretch;
   }
 
-  .nav {
-    justify-content: flex-start;
-  }
-
-  .header-links {
-    justify-content: flex-start;
-  }
-
   .collection-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .menu-wrap {
+    justify-self: start;
   }
 
   .account-pill {
@@ -854,18 +910,10 @@ select:focus {
     padding: 12px;
   }
 
-  .header-search {
-    width: 100%;
-  }
-
-  .header-search input {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .header-links {
-    gap: 10px;
-    flex-wrap: wrap;
+  .menu-dropdown {
+    left: 0;
+    transform: none;
+    width: min(240px, calc(100vw - 56px));
   }
 
   .hero-showcase {

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 
 const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
 const HERO_COVER_IMAGE =
   "https://res.cloudinary.com/djzjta6h3/image/upload/v1771031352/web-cover_r4n0eq.jpg";
 const navItems = [
@@ -9,10 +10,8 @@ const navItems = [
   { id: "about", label: "About" },
   { id: "packages", label: "Packages" },
   { id: "booking", label: "Booking" },
-  { id: "confirmdetails", label: "Confirm details" },
   { id: "payments", label: "Payments" },
-  { id: "admin", label: "Admin" },
-  { id: "account", label: "Account" }
+  { id: "admin", label: "Admin" }
 ];
 const PACKAGE_IMAGE_MAP = {
   ECONOMY:
@@ -108,6 +107,7 @@ export default function App() {
   const [otpMessage, setOtpMessage] = useState("");
   const [otpVerified, setOtpVerified] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [registerForm, setRegisterForm] = useState({
@@ -251,6 +251,48 @@ export default function App() {
       minute: "2-digit"
     });
   };
+
+  const openBookingPayments = async (bookingRow) => {
+    if (!bookingRow?.id) return;
+    setBooking(bookingRow);
+    setPage("payments");
+    await loadInstallments(String(bookingRow.id));
+  };
+
+  const openPendingPayments = async () => {
+    const firstPending = accountBookings.find((row) =>
+      paymentAudit.some((p) => String(p.bookingId) === String(row.id) && p.status !== "paid")
+    );
+    if (firstPending) {
+      await openBookingPayments(firstPending);
+      return;
+    }
+    if (booking?.id) {
+      setPage("payments");
+      return;
+    }
+    setPage("payments");
+  };
+
+  const loadRazorpayScript = () =>
+    new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const existing = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+      if (existing) {
+        existing.addEventListener("load", () => resolve(true), { once: true });
+        existing.addEventListener("error", () => resolve(false), { once: true });
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
 
   const resolvePackageName = (packageId) => {
     const candidate = packages.find(
@@ -549,29 +591,99 @@ export default function App() {
     }
   };
 
-  const payInstallment = async (installmentNumber) => {
-    if (!booking?.id) return;
+  const payInstallment = async (installment, method) => {
+    if (!booking?.id || !installment?.installmentNumber) return;
     setPaymentError("");
     setPaymentMessage("");
+    if (!RAZORPAY_KEY_ID) {
+      setPaymentError("Razorpay is not configured. Set VITE_RAZORPAY_KEY_ID.");
+      return;
+    }
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) {
+      setPaymentError("Unable to load Razorpay checkout");
+      return;
+    }
+
     setPaymentLoading(true);
     try {
-      const res = await fetch(`${API}/payment/installments/pay`, {
+      const orderRes = await fetch(`${API}/payment/razorpay/order`, {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({
           bookingId: String(booking.id),
-          installmentNumber
+          installmentNumber: installment.installmentNumber,
+          paymentMethod: method
         })
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setPaymentError(data.error || "Unable to process installment payment");
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) {
+        setPaymentError(orderData.error || "Unable to initialize payment");
         return;
       }
-      setPaymentMessage(`Installment ${installmentNumber} paid successfully`);
-      await loadInstallments(String(booking.id));
+
+      const options = {
+        key: orderData.keyId || RAZORPAY_KEY_ID,
+        amount: orderData.amount,
+        currency: orderData.currency || "INR",
+        name: orderData.name || "Al-Muhammad Travels",
+        description: orderData.description || `Installment ${installment.installmentNumber}`,
+        order_id: orderData.orderId,
+        prefill: {
+          name: `${firstName} ${lastName}`.trim() || "Traveler",
+          email: email || "",
+          contact: (mobileNumber || "").replace(/[^\d]/g, "")
+        },
+        notes: {
+          bookingId: String(booking.id),
+          installmentNumber: String(installment.installmentNumber),
+          paymentMethod: method
+        },
+        theme: {
+          color: "#0f7a4b"
+        },
+        handler: async (response) => {
+          try {
+            const verifyRes = await fetch(`${API}/payment/razorpay/verify`, {
+              method: "POST",
+              headers: authHeaders(),
+              body: JSON.stringify({
+                bookingId: String(booking.id),
+                installmentNumber: installment.installmentNumber,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+                paymentMethod: method
+              })
+            });
+            const verifyData = await verifyRes.json();
+            if (!verifyRes.ok) {
+              setPaymentError(verifyData.error || "Payment verification failed");
+              return;
+            }
+            setPaymentMessage(
+              `Installment ${installment.installmentNumber} paid successfully via ${method}`
+            );
+            await loadInstallments(String(booking.id));
+          } catch (err) {
+            setPaymentError(err.message || "Payment verification failed");
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setPaymentLoading(false);
+          }
+        }
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.on("payment.failed", (response) => {
+        const reason = response?.error?.description || "Payment failed";
+        setPaymentError(reason);
+      });
+      razorpay.open();
     } catch (err) {
-      setPaymentError(err.message || "Unable to process installment payment");
+      setPaymentError(err.message || "Unable to process payment");
     } finally {
       setPaymentLoading(false);
     }
@@ -597,15 +709,16 @@ export default function App() {
 
   useEffect(() => {
     setProfileMenuOpen(false);
+    setMenuOpen(false);
   }, [page, token]);
 
   useEffect(() => {
-    if (!token || page !== "account") return;
+    if (!token || !["account", "booking", "payments", "confirmdetails"].includes(page)) return;
 
     const loadAccountData = async () => {
       setAccountLoading(true);
       try {
-        const bookingsRes = await fetch(`${API}/booking/my`, { headers: authHeaders() });
+        const bookingsRes = await fetch(`${API}/booking/user-bookings`, { headers: authHeaders() });
         const bookingsData = await bookingsRes.json();
         if (!bookingsRes.ok || !Array.isArray(bookingsData)) {
           setAccountBookings([]);
@@ -804,36 +917,47 @@ export default function App() {
     <div className="page">
       <header className="topbar">
         <div className="logo">
-          <img
-            className="brand-logo"
-            src="https://res.cloudinary.com/djzjta6h3/image/upload/v1771030169/LOGO_ytc1mc.png"
-            alt="Al-Muhammad logo"
-          />
-          <div>
-            <p className="brand">Al-Muhammad Travels</p>
-            <p className="tagline">Umrah service portal</p>
+          <button className="brand-link" type="button" onClick={() => setPage("home")}>
+            <div>
+              <p className="brand">Al-Muhammad Travels</p>
+              <p className="tagline">Umrah service portal</p>
+            </div>
+          </button>
+          <div className="menu-wrap">
+            <button className="menu-trigger" type="button" onClick={() => setMenuOpen((prev) => !prev)}>
+              ☰ Menu
+            </button>
+            {menuOpen && (
+              <div className="menu-dropdown">
+                {navItems
+                  .filter((item) => item.id !== "admin")
+                  .filter((item) => item.id !== "payments" || !!token)
+                  .map((item) => (
+                    <button
+                      key={item.id}
+                      className={`nav-link ${page === item.id ? "active" : ""}`}
+                      onClick={() => {
+                        setPage(item.id);
+                        setMenuOpen(false);
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                {role === "ADMIN" && (
+                  <button
+                    className={`nav-link ${page === "admin" ? "active" : ""}`}
+                    onClick={() => {
+                      setPage("admin");
+                      setMenuOpen(false);
+                    }}
+                  >
+                    Admin
+                  </button>
+                )}
+              </div>
+            )}
           </div>
-        </div>
-        <nav className="nav">
-          {navItems
-            .filter((item) => item.id !== "admin" || role === "ADMIN")
-            .map((item) => (
-              <button
-                key={item.id}
-                className={`nav-link ${page === item.id ? "active" : ""}`}
-                onClick={() => setPage(item.id)}
-              >
-                {item.label}
-              </button>
-            ))}
-        </nav>
-        <div className="header-search">
-          <input type="text" placeholder="Search" />
-          <button type="button">Go</button>
-        </div>
-        <div className="header-links">
-          <button type="button" onClick={() => setPage("account")}>Account</button>
-          <button type="button" onClick={() => setPage("booking")}>My Bookings</button>
         </div>
         <div className="account-pill">
           {token ? (
@@ -855,7 +979,25 @@ export default function App() {
                       setProfileMenuOpen(false);
                     }}
                   >
-                    Profile settings
+                    Settings
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPage("account");
+                      setProfileMenuOpen(false);
+                    }}
+                  >
+                    Account
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPage("booking");
+                      setProfileMenuOpen(false);
+                    }}
+                  >
+                    My bookings
                   </button>
                   <button type="button" onClick={handleLogout}>
                     Logout
@@ -868,9 +1010,11 @@ export default function App() {
               Sign in
             </button>
           )}
-          <button className="cart-chip" type="button" onClick={() => setPage("payments")}>
-            Cart <span>{cartCount}</span>
-          </button>
+          {token && (
+            <button className="cart-chip" type="button" onClick={() => setPage("payments")}>
+              Cart <span>{cartCount}</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -1075,6 +1219,35 @@ export default function App() {
                 </button>
                 {!token && <p className="muted">Sign in to complete your booking.</p>}
               </form>
+              {token && (
+                <div className="account-block">
+                  <h4>My bookings</h4>
+                  {accountLoading ? (
+                    <p className="muted">Loading your bookings...</p>
+                  ) : accountBookings.length === 0 ? (
+                    <p className="muted">No bookings found for your account.</p>
+                  ) : (
+                    <div className="installment-list">
+                      {accountBookings.map((row) => (
+                        <div className="installment-item" key={row.id}>
+                          <div>
+                            <p className="installment-title">
+                              Booking #{row.id} | {resolvePackageName(row.packageId)}
+                            </p>
+                            <p className="muted">
+                              Traveler: {row.travelerName || "-"} | Travel: {formatDate(row.travelDate)}
+                            </p>
+                            <p className="muted">Status: {row.status}</p>
+                          </div>
+                          <button className="ghost" type="button" onClick={() => openBookingPayments(row)}>
+                            Manage payments
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="panel summary">
               <h3>Selected package</h3>
@@ -1091,6 +1264,15 @@ export default function App() {
               <button className="ghost" type="button" onClick={() => setPage("confirmdetails")}>
                 Go to confirm details
               </button>
+              {token && (
+                <div className="booking">
+                  <p>Pending installments: {paymentAudit.filter((p) => p.status !== "paid").length}</p>
+                  <p>Total pending amount: {formatPrice(accountTotalDue)}</p>
+                  <button className="cta light" type="button" onClick={openPendingPayments}>
+                    Pay remaining installments
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -1141,6 +1323,13 @@ export default function App() {
           <div className="panel">
             {booking ? (
               <div className="installments">
+                <div className="booking">
+                  <p>Booking ID: {booking.id || "-"}</p>
+                  <p>Package: {resolvePackageName(booking.packageId) || selectedPackage?.name || "-"}</p>
+                  <p>Traveler: {booking.travelerName || "-"}</p>
+                  <p>Travel date: {formatDate(booking.travelDate)}</p>
+                  <p>Status: {booking.status || "-"}</p>
+                </div>
                 <div className="installments-head">
                   <h4>Pay in 3 installments</h4>
                   <p className="muted">
@@ -1159,14 +1348,38 @@ export default function App() {
                             Due: {formatDate(item.dueDate)} | Amount: {formatPrice(item.amount || 0)}
                           </p>
                         </div>
-                        <button
-                          className="cta light"
-                          type="button"
-                          disabled={paymentLoading || item.status === "paid"}
-                          onClick={() => payInstallment(item.installmentNumber)}
-                        >
-                          {item.status === "paid" ? "Paid" : "Pay now"}
-                        </button>
+                        {item.status === "paid" ? (
+                          <button className="cta light" type="button" disabled>
+                            Paid
+                          </button>
+                        ) : (
+                          <div className="payment-methods">
+                            <button
+                              className="cta light"
+                              type="button"
+                              disabled={paymentLoading}
+                              onClick={() => payInstallment(item, "upi")}
+                            >
+                              UPI
+                            </button>
+                            <button
+                              className="cta light"
+                              type="button"
+                              disabled={paymentLoading}
+                              onClick={() => payInstallment(item, "credit_card")}
+                            >
+                              Credit Card
+                            </button>
+                            <button
+                              className="cta light"
+                              type="button"
+                              disabled={paymentLoading}
+                              onClick={() => payInstallment(item, "debit_card")}
+                            >
+                              Debit Card
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1178,10 +1391,34 @@ export default function App() {
               </div>
             ) : (
               <div className="session">
-                <p>No booking available for payment.</p>
-                <button className="cta" type="button" onClick={() => setPage("booking")}>
-                  Create booking first
-                </button>
+                <p>No active booking selected for payment.</p>
+                {paymentAudit.filter((p) => p.status !== "paid").length > 0 ? (
+                  <div className="installment-list">
+                    {accountBookings.map((row) => {
+                      const pendingCount = paymentAudit.filter(
+                        (p) => String(p.bookingId) === String(row.id) && p.status !== "paid"
+                      ).length;
+                      if (pendingCount === 0) return null;
+                      return (
+                        <div className="installment-item" key={row.id}>
+                          <div>
+                            <p className="installment-title">
+                              Booking #{row.id} | {resolvePackageName(row.packageId)}
+                            </p>
+                            <p className="muted">Pending installments: {pendingCount}</p>
+                          </div>
+                          <button className="ghost" type="button" onClick={() => openBookingPayments(row)}>
+                            Open payments
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <button className="cta" type="button" onClick={() => setPage("booking")}>
+                    Create booking first
+                  </button>
+                )}
               </div>
             )}
           </div>
