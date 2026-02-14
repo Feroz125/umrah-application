@@ -104,6 +104,7 @@ export default function App() {
   const [tenantId, setTenantId] = useState(storedTenant);
   const [authMode, setAuthMode] = useState("signin");
   const [authError, setAuthError] = useState("");
+  const [googleEmbedBlocked, setGoogleEmbedBlocked] = useState(false);
   const [otpMessage, setOtpMessage] = useState("");
   const [otpVerified, setOtpVerified] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -172,6 +173,13 @@ export default function App() {
     const initGoogle = () => {
       const buttonRoot = document.getElementById("google-signin-btn");
       if (!buttonRoot || !window.google?.accounts?.id) return;
+      if (window.self !== window.top) {
+        setGoogleEmbedBlocked(true);
+        setAuthError("Google sign-in is blocked in embedded views. Open this page in a new tab.");
+        buttonRoot.innerHTML = "";
+        return;
+      }
+      setGoogleEmbedBlocked(false);
       buttonRoot.innerHTML = "";
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
@@ -1881,7 +1889,20 @@ export default function App() {
                 )}
                 {authError && <p className="muted">{authError}</p>}
                 {GOOGLE_CLIENT_ID ? (
-                  <div id="google-signin-btn" />
+                  <>
+                    <div id="google-signin-btn" />
+                    {googleEmbedBlocked && (
+                      <div className="row-actions">
+                        <button
+                          className="ghost"
+                          type="button"
+                          onClick={() => window.open(window.location.href, "_blank", "noopener,noreferrer")}
+                        >
+                          Open in new tab for Google sign-in
+                        </button>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <p className="muted">
                     Google Sign-In is disabled. Set <code>VITE_GOOGLE_CLIENT_ID</code>.
