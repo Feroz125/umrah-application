@@ -18,7 +18,7 @@ security:
     issuer: almuhammad
     expiresMinutes: 120
   google:
-    clientId: ${GOOGLE_CLIENT_ID:}
+    clientId: ${GOOGLE_CLIENT_ID:619516920511-4k3a6g5973a04p57d76rhhp6h23eutkj.apps.googleusercontent.com}
   otp:
     expiresMinutes: ${OTP_EXPIRES_MINUTES:5}
     exposeInResponse: ${OTP_EXPOSE_IN_RESPONSE:true}
