@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-const API = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api";
+const API = import.meta.env.VITE_API_BASE_URL || "/api";
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
 const HERO_COVER_IMAGE =
@@ -1890,3 +1890,4 @@ export default function App() {
     </div>
   );
 }
+
